@@ -47,10 +47,14 @@ def get_reddit_client():
     """Create authenticated Reddit client using 1Password credentials."""
     log("Fetching credentials from 1Password...")
 
+    # Get 1Password item name from environment or use default
+    op_reddit_item = os.environ.get("OP_REDDIT_ITEM", "reddit.com")
+    op_reddit_vault = os.environ.get("OP_REDDIT_VAULT", "Personal")
+
     # Get login credentials and TOTP from Personal vault
-    username = get_op_field("reddit.com - REDDIT_USER", "username", "Personal")
-    password = get_op_field("reddit.com - REDDIT_USER", "password", "Personal")
-    totp_code = get_op_totp("reddit.com - REDDIT_USER", "Personal")
+    username = get_op_field(op_reddit_item, "username", op_reddit_vault)
+    password = get_op_field(op_reddit_item, "password", op_reddit_vault)
+    totp_code = get_op_totp(op_reddit_item, op_reddit_vault)
 
     # Get API credentials from Home Operations vault
     client_id = get_op_field("Reddit API", "client_id")
