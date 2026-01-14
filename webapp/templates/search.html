@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Search - Reddit Saved{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/" class="text-orange-400 hover:text-orange-300 text-sm transition-colors">
+        <span class="mr-1">&larr;</span> Back to categories
+    </a>
+    <h1 class="text-2xl font-bold mt-2">
+        <span class="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            Search Results
+        </span>
+    </h1>
+    {% if query %}
+    <p class="text-gray-400">{{ total }} results for "{{ query }}"{% if total > 100 %} (showing first 100){% endif %}</p>
+    {% endif %}
+</div>
+
+<!-- Search form -->
+<div class="glass-card rounded-xl p-4 mb-6">
+    <form method="GET" class="flex gap-4">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search all saved items..."
+               class="glass-input flex-1 rounded px-4 py-2 focus:outline-none">
+        <button type="submit" class="btn-gradient px-6 py-2 rounded font-medium">
+            Search
+        </button>
+    </form>
+</div>
+
+<!-- Results -->
+<div class="space-y-4">
+    {% for item in items %}
+    <div class="item-card rounded-xl p-4 {% if item.reviewed %}reviewed{% endif %}">
+        <div class="flex justify-between items-start gap-4">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs px-2.5 py-0.5 rounded-full font-medium {% if item.item_type == 'post' %}badge-post{% else %}badge-comment{% endif %}">
+                        {{ item.item_type }}
+                    </span>
+                    <span class="text-sm text-orange-400">r/{{ item.subreddit }}</span>
+                    <span class="text-xs text-gray-500">{{ item.created_utc.strftime('%Y-%m-%d') }}</span>
+                    <a href="/category/{{ item.category }}" class="text-xs text-gray-500 hover:text-orange-400 transition-colors">
+                        {{ item.category }}
+                    </a>
+                </div>
+
+                {% if item.item_type == 'post' %}
+                <a href="{{ item.permalink }}" target="_blank"
+                   class="text-lg font-medium hover:text-orange-400 block truncate transition-colors">
+                    {{ item.title }}
+                </a>
+                {% if item.selftext %}
+                <p class="text-gray-400 text-sm mt-2 line-clamp-2">{{ item.selftext[:200] }}...</p>
+                {% endif %}
+                {% else %}
+                <a href="{{ item.permalink }}" target="_blank"
+                   class="text-lg font-medium hover:text-orange-400 block truncate transition-colors">
+                    Comment on: {{ item.post_title }}
+                </a>
+                {% if item.body %}
+                <p class="text-gray-400 text-sm mt-2 line-clamp-2">{{ item.body[:200] }}...</p>
+                {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <a href="{{ item.permalink }}" target="_blank"
+                   class="glass-card px-3 py-1.5 rounded text-sm text-center hover:border-orange-500/30 transition-colors">
+                    Open
+                </a>
+                <button onclick="toggleReviewed('{{ item.reddit_id }}', this)"
+                        data-reviewed="{{ 'true' if item.reviewed else 'false' }}"
+                        class="btn-reviewed px-3 py-1.5 rounded text-sm {% if item.reviewed %}active{% endif %}">
+                    {% if item.reviewed %}Reviewed{% else %}Mark Reviewed{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not items and query %}
+<div class="text-center py-12">
+    <div class="glass-card inline-block rounded-2xl p-8">
+        <svg class="w-12 h-12 mx-auto text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <p class="text-gray-500">No items found for "{{ query }}"</p>
+    </div>
+</div>
+{% elif not query %}
+<div class="text-center py-12">
+    <div class="glass-card inline-block rounded-2xl p-8">
+        <svg class="w-12 h-12 mx-auto text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <p class="text-gray-500">Enter a search term to find saved items</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

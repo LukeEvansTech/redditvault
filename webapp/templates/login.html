@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Reddit Saved{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center">
+    <div class="glass-card rounded-2xl p-8 max-w-md w-full text-center">
+        <!-- Logo / Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">
+                <span class="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
+                    Reddit Saved
+                </span>
+            </h1>
+            <p class="text-gray-400">
+                Organize and review your saved posts
+            </p>
+        </div>
+
+        <!-- Features -->
+        <div class="mb-8 text-left space-y-3">
+            <div class="flex items-center gap-3 text-sm">
+                <span class="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </span>
+                <span class="text-gray-300">Browse saved items by category</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+                <span class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </span>
+                <span class="text-gray-300">Search across all your saves</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+                <span class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </span>
+                <span class="text-gray-300">Track what you've reviewed</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+                <span class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                </span>
+                <span class="text-gray-300">Sync automatically with Reddit</span>
+            </div>
+        </div>
+
+        <!-- Login Button -->
+        <a href="{{ url_for('auth.login') }}"
+           class="btn-reddit w-full py-3 rounded-xl text-white font-medium flex items-center justify-center gap-3 text-lg">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/>
+            </svg>
+            Login with Reddit
+        </a>
+
+        <p class="text-xs text-gray-500 mt-6">
+            Your data stays private. We only access your saved items.
+        </p>
+    </div>
+</div>
+{% endblock %}

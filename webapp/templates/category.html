@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}{{ name }} - Reddit Saved{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/" class="text-orange-400 hover:text-orange-300 text-sm transition-colors">
+        <span class="mr-1">&larr;</span> Back to categories
+    </a>
+    <h1 class="text-2xl font-bold mt-2">
+        <span class="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            {{ name }}
+        </span>
+    </h1>
+    <p class="text-gray-400">{{ items|length }} of {{ total }} items shown</p>
+</div>
+
+<!-- Filters -->
+<div class="glass-card rounded-xl p-4 mb-6">
+    <form method="GET" class="flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-sm text-gray-400 mb-1">Type</label>
+            <select name="type" class="glass-select rounded px-3 py-1.5 text-sm">
+                <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All</option>
+                <option value="post" {% if filter_type == 'post' %}selected{% endif %}>Posts</option>
+                <option value="comment" {% if filter_type == 'comment' %}selected{% endif %}>Comments</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm text-gray-400 mb-1">Status</label>
+            <select name="status" class="glass-select rounded px-3 py-1.5 text-sm">
+                <option value="all" {% if filter_status == 'all' %}selected{% endif %}>All</option>
+                <option value="unreviewed" {% if filter_status == 'unreviewed' %}selected{% endif %}>Unreviewed</option>
+                <option value="reviewed" {% if filter_status == 'reviewed' %}selected{% endif %}>Reviewed</option>
+            </select>
+        </div>
+        <div class="flex-1">
+            <label class="block text-sm text-gray-400 mb-1">Search in category</label>
+            <input type="text" name="q" value="{{ search }}"
+                   class="glass-input w-full rounded px-3 py-1.5 text-sm">
+        </div>
+        <button type="submit" class="btn-gradient px-4 py-1.5 rounded text-sm font-medium">
+            Filter
+        </button>
+    </form>
+</div>
+
+<!-- Subreddits quick nav -->
+<div class="mb-6 flex flex-wrap gap-2">
+    {% for sub in subreddits %}
+    <span class="subreddit-tag rounded px-2 py-1 text-xs text-gray-400">
+        r/{{ sub }}
+    </span>
+    {% endfor %}
+</div>
+
+<!-- Items -->
+<div class="space-y-4">
+    {% for item in items %}
+    <div class="item-card rounded-xl p-4 {% if item.reviewed %}reviewed{% endif %}">
+        <div class="flex justify-between items-start gap-4">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs px-2.5 py-0.5 rounded-full font-medium {% if item.item_type == 'post' %}badge-post{% else %}badge-comment{% endif %}">
+                        {{ item.item_type }}
+                    </span>
+                    <span class="text-sm text-orange-400">r/{{ item.subreddit }}</span>
+                    <span class="text-xs text-gray-500">{{ item.created_utc.strftime('%Y-%m-%d') }}</span>
+                    <span class="text-xs text-gray-500">{{ item.score }} pts</span>
+                </div>
+
+                {% if item.item_type == 'post' %}
+                <a href="{{ item.permalink }}" target="_blank"
+                   class="text-lg font-medium hover:text-orange-400 block truncate transition-colors">
+                    {{ item.title }}
+                </a>
+                {% if item.selftext %}
+                <p class="text-gray-400 text-sm mt-2 line-clamp-2">{{ item.selftext[:200] }}{% if item.selftext|length > 200 %}...{% endif %}</p>
+                {% elif not item.is_self %}
+                <p class="text-gray-500 text-sm mt-1 truncate flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    </svg>
+                    {{ item.url }}
+                </p>
+                {% endif %}
+                {% else %}
+                <a href="{{ item.permalink }}" target="_blank"
+                   class="text-lg font-medium hover:text-orange-400 block truncate transition-colors">
+                    Comment on: {{ item.post_title }}
+                </a>
+                {% if item.body %}
+                <p class="text-gray-400 text-sm mt-2 line-clamp-2">{{ item.body[:200] }}{% if item.body|length > 200 %}...{% endif %}</p>
+                {% endif %}
+                {% endif %}
+
+                <p class="text-xs text-gray-500 mt-2">by u/{{ item.author }}</p>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <a href="{{ item.permalink }}" target="_blank"
+                   class="glass-card px-3 py-1.5 rounded text-sm text-center hover:border-orange-500/30 transition-colors">
+                    Open
+                </a>
+                <button onclick="toggleReviewed('{{ item.reddit_id }}', this)"
+                        data-reviewed="{{ 'true' if item.reviewed else 'false' }}"
+                        class="btn-reviewed px-3 py-1.5 rounded text-sm {% if item.reviewed %}active{% endif %}">
+                    {% if item.reviewed %}Reviewed{% else %}Mark Reviewed{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not items %}
+<div class="text-center py-12">
+    <div class="glass-card inline-block rounded-2xl p-8">
+        <svg class="w-12 h-12 mx-auto text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="text-gray-500">No items match your filters</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
