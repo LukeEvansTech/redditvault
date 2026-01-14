@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Reddit Saved Items{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="text-gray-100 min-h-screen">
+    <!-- Background orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <nav class="glass-nav sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="/" class="text-xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
+                    Reddit Saved
+                </a>
+                <div class="flex items-center gap-4">
+                    {% if current_user.is_authenticated %}
+                    <form action="/search" method="GET" class="flex">
+                        <input type="text" name="q" placeholder="Search..."
+                               class="glass-input rounded-l px-3 py-1.5 text-sm w-48">
+                        <button type="submit" class="btn-gradient px-4 py-1.5 rounded-r text-sm font-medium">
+                            Search
+                        </button>
+                    </form>
+                    <div class="stats-glass text-sm">
+                        <span id="stats" class="text-gray-300"></span>
+                    </div>
+                    <button id="sync-btn" onclick="triggerSync()"
+                            class="sync-btn glass-card px-3 py-1.5 rounded text-sm hover:border-orange-500/30">
+                        Sync
+                    </button>
+                    <span class="text-sm text-gray-400">u/{{ current_user.username }}</span>
+                    <a href="{{ url_for('auth.logout') }}"
+                       class="text-sm text-gray-400 hover:text-white transition-colors">
+                        Logout
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}"
+                       class="btn-reddit px-4 py-2 rounded-lg text-sm font-medium text-white">
+                        Login with Reddit
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 pt-4">
+        {% for category, message in messages %}
+        <div class="flash-{{ category }} glass rounded-lg px-4 py-3 mb-2 text-sm">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        {% if current_user.is_authenticated %}
+        // Load stats
+        function loadStats() {
+            fetch('/api/stats')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('stats').textContent =
+                        `${data.reviewed}/${data.total} reviewed`;
+
+                    // Update sync button state
+                    const syncBtn = document.getElementById('sync-btn');
+                    if (data.sync_in_progress) {
+                        syncBtn.classList.add('syncing');
+                        syncBtn.textContent = 'Syncing...';
+                        setTimeout(loadStats, 3000);
+                    } else {
+                        syncBtn.classList.remove('syncing');
+                        syncBtn.textContent = 'Sync';
+                    }
+                });
+        }
+        loadStats();
+
+        // Trigger sync
+        function triggerSync() {
+            const syncBtn = document.getElementById('sync-btn');
+            syncBtn.classList.add('syncing');
+            syncBtn.textContent = 'Syncing...';
+
+            fetch('/api/sync', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({full: false})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Sync error: ' + data.error);
+                    syncBtn.classList.remove('syncing');
+                    syncBtn.textContent = 'Sync';
+                } else if (data.status === 'success') {
+                    loadStats();
+                    if (data.new_items > 0) {
+                        location.reload();
+                    }
+                } else {
+                    // Still running, poll for status
+                    setTimeout(loadStats, 2000);
+                }
+            });
+        }
+
+        // Toggle reviewed state
+        function toggleReviewed(itemId, btn) {
+            const isReviewed = btn.dataset.reviewed === 'true';
+            fetch(`/api/item/${itemId}/state`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({reviewed: !isReviewed})
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.dataset.reviewed = data.state.reviewed;
+                const card = btn.closest('.item-card');
+                if (data.state.reviewed) {
+                    btn.textContent = 'Reviewed';
+                    btn.classList.add('active');
+                    card.classList.add('reviewed');
+                } else {
+                    btn.textContent = 'Mark Reviewed';
+                    btn.classList.remove('active');
+                    card.classList.remove('reviewed');
+                }
+                loadStats();
+            });
+        }
+        {% endif %}
+    </script>
+</body>
+</html>

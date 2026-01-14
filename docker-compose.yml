@@ -1,0 +1,15 @@
+services:
+  reddit-saved:
+    build: .
+    ports:
+      - "5050:5000"
+    volumes:
+      - ./data:/data
+    environment:
+      - DATABASE_URL=sqlite:////data/reddit_saved.db
+      - SECRET_KEY=6348f1c411fa016723996742fe8dcce38db0661804396ccbb5b8b77f17faa0ec
+      - REDDIT_CLIENT_ID=${REDDIT_CLIENT_ID}
+      - REDDIT_CLIENT_SECRET=${REDDIT_CLIENT_SECRET}
+      - REDDIT_REDIRECT_URI=http://localhost:5050/auth/callback
+      - REDDIT_USER_AGENT=RedditSavedViewer/1.0 by u/SolidCactus
+    restart: unless-stopped

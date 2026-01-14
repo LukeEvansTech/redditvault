@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2">
+        <span class="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            Your Saved Items
+        </span>
+    </h1>
+    <p class="text-gray-400">
+        {{ total }} items across {{ categories|length }} categories
+        <span class="mx-2 text-gray-600">|</span>
+        <span class="text-green-400">{{ total_reviewed }} reviewed</span>
+    </p>
+
+    <div class="mt-4 glass rounded-full h-3 overflow-hidden">
+        {% set pct = (total_reviewed / total * 100) if total > 0 else 0 %}
+        <div class="progress-bar-glow h-full rounded-full" style="width: {{ pct }}%"></div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for cat in categories %}
+    <a href="/category/{{ cat.name }}"
+       class="category-card block rounded-xl p-5 group">
+        <div class="flex justify-between items-start mb-3">
+            <h2 class="text-lg font-semibold text-gray-100 group-hover:text-orange-400 transition-colors">
+                {{ cat.name }}
+            </h2>
+            <span class="text-sm text-gray-400 glass px-2 py-0.5 rounded-full">{{ cat.count }}</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="flex-1 bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                {% set cat_pct = (cat.reviewed / cat.count * 100) if cat.count > 0 else 0 %}
+                <div class="progress-bar-glow h-full rounded-full" style="width: {{ cat_pct }}%"></div>
+            </div>
+            <span class="text-xs text-gray-400">{{ cat.reviewed }}/{{ cat.count }}</span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+{% if not categories %}
+<div class="text-center py-16">
+    <div class="glass-card inline-block rounded-2xl p-8">
+        <div class="text-6xl mb-4">
+            <svg class="w-16 h-16 mx-auto text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+        </div>
+        <h3 class="text-lg font-medium mb-2">No saved items yet</h3>
+        <p class="text-gray-400 text-sm mb-4">Click the Sync button to fetch your Reddit saved items</p>
+        <button onclick="triggerSync()"
+                class="btn-gradient px-6 py-2 rounded-lg font-medium">
+            Sync Now
+        </button>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
