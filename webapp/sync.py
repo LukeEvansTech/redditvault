@@ -38,11 +38,14 @@ class RedditSyncService:
             sleep_time = max(self.rate_limit_reset, 1)
             time.sleep(sleep_time)
 
-    def _make_request(self, endpoint: str, params: dict = None) -> dict:
+    def _make_request(self, endpoint: str, params: dict = None, method: str = "GET", data: dict = None) -> dict:
         """Make rate-limited request to Reddit API."""
         url = f"{self.BASE_URL}{endpoint}"
 
-        response = requests.get(url, headers=self.headers, params=params, timeout=30)
+        if method == "POST":
+            response = requests.post(url, headers=self.headers, data=data, timeout=30)
+        else:
+            response = requests.get(url, headers=self.headers, params=params, timeout=30)
 
         self._check_rate_limit(response)
 
@@ -50,11 +53,14 @@ class RedditSyncService:
             raise RedditAPIError("Token expired")
         elif response.status_code == 429:
             time.sleep(60)
-            return self._make_request(endpoint, params)
-        elif response.status_code != 200:
+            return self._make_request(endpoint, params, method, data)
+        elif response.status_code not in (200, 202):
             raise RedditAPIError(f"API error: {response.status_code}")
 
-        return response.json()
+        # Some endpoints return empty response
+        if response.text:
+            return response.json()
+        return {}
 
     def sync_saved_items(self, full_sync: bool = False) -> tuple[int, int]:
         """
@@ -156,6 +162,19 @@ class RedditSyncService:
 
         db.session.commit()
 
+    def unsave_item(self, fullname: str) -> bool:
+        """
+        Unsave an item on Reddit.
+
+        Args:
+            fullname: Reddit fullname (e.g., t3_abc123 or t1_xyz789)
+
+        Returns:
+            True if successful
+        """
+        self._make_request("/api/unsave", method="POST", data={"id": fullname})
+        return True
+
 
 def sync_user_items(user_id: int, full_sync: bool = False) -> dict:
     """
@@ -208,4 +227,52 @@ def sync_user_items(user_id: int, full_sync: bool = False) -> dict:
         user.sync_in_progress = False
         db.session.commit()
         current_app.logger.error(f"Sync error for user {user_id}: {e}")
+        return {"error": str(e)}
+
+
+def unsave_user_item(user_id: int, item_id: str) -> dict:
+    """
+    Unsave an item for a user on Reddit and remove from local database.
+
+    Args:
+        user_id: The user's database ID
+        item_id: The reddit_id of the item to unsave
+
+    Returns:
+        Dict with status
+    """
+    from flask import current_app
+
+    user = User.query.get(user_id)
+
+    if not user:
+        return {"error": "User not found"}
+
+    # Find the item
+    item = SavedItem.query.filter_by(user_id=user_id, reddit_id=item_id).first()
+    if not item:
+        return {"error": "Item not found"}
+
+    try:
+        # Check if token needs refresh
+        if user.is_token_expired():
+            from .auth import refresh_access_token
+            if not refresh_access_token(user):
+                return {"error": "Token refresh failed"}
+
+        # Unsave on Reddit
+        sync_service = RedditSyncService(user, current_app.config)
+        sync_service.unsave_item(item.reddit_fullname)
+
+        # Remove from local database
+        db.session.delete(item)
+        db.session.commit()
+
+        return {"status": "success"}
+
+    except RedditAPIError as e:
+        return {"error": str(e)}
+
+    except Exception as e:
+        current_app.logger.error(f"Unsave error for user {user_id}, item {item_id}: {e}")
         return {"error": str(e)}

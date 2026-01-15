@@ -218,6 +218,18 @@ def create_app(config_class=Config):
 
         return jsonify(result)
 
+    @app.route("/api/item/<item_id>/unsave", methods=["POST"])
+    @login_required
+    def unsave_item(item_id):
+        """Unsave an item from Reddit and remove from local database."""
+        from .sync import unsave_user_item
+        result = unsave_user_item(current_user.id, item_id)
+
+        if "error" in result:
+            return jsonify(result), 400
+
+        return jsonify(result)
+
     @app.route("/api/sync/status")
     @login_required
     def sync_status():

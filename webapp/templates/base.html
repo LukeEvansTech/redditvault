@@ -145,6 +145,44 @@
                 loadStats();
             });
         }
+
+        // Unsave item from Reddit
+        function unsaveItem(itemId, btn) {
+            if (!confirm('Unsave this item from Reddit? This cannot be undone.')) {
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Unsaving...';
+
+            fetch(`/api/item/${itemId}/unsave`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    btn.disabled = false;
+                    btn.textContent = 'Unsave';
+                } else {
+                    // Remove the card with animation
+                    const card = btn.closest('.item-card');
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateX(100px)';
+                    card.style.transition = 'all 0.3s ease';
+                    setTimeout(() => {
+                        card.remove();
+                        loadStats();
+                    }, 300);
+                }
+            })
+            .catch(err => {
+                alert('Error: ' + err);
+                btn.disabled = false;
+                btn.textContent = 'Unsave';
+            });
+        }
         {% endif %}
     </script>
 </body>

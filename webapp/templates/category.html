@@ -107,6 +107,10 @@
                         class="btn-reviewed px-3 py-1.5 rounded text-sm {% if item.reviewed %}active{% endif %}">
                     {% if item.reviewed %}Reviewed{% else %}Mark Reviewed{% endif %}
                 </button>
+                <button onclick="unsaveItem('{{ item.reddit_id }}', this)"
+                        class="btn-unsave px-3 py-1.5 rounded text-sm">
+                    Unsave
+                </button>
             </div>
         </div>
     </div>
