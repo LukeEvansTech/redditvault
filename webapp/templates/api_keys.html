@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}API Keys - RedditVault{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/" class="text-cyan-500 hover:text-cyan-400 text-sm transition-colors">
+        <span class="mr-1">&larr;</span> Back to dashboard
+    </a>
+    <h1 class="text-2xl font-bold mt-2 text-white">
+        API Keys
+    </h1>
+    <p class="text-gray-400">Create API keys to access RedditVault programmatically</p>
+</div>
+
+<!-- Create new key -->
+<div class="card rounded-xl p-4 mb-6">
+    <h2 class="text-lg font-medium mb-3">Create New Key</h2>
+    <div class="flex gap-4">
+        <input type="text" id="key-name" placeholder="Key name (e.g. 'CLI script')"
+               class="input-dark flex-1 rounded px-4 py-2">
+        <button onclick="createKey()" class="btn-primary px-6 py-2 rounded font-medium">
+            Create Key
+        </button>
+    </div>
+    <div id="new-key-display" class="hidden mt-4 bg-dark-700 border border-emerald-600 rounded-lg p-4">
+        <p class="text-emerald-400 text-sm font-medium mb-2">Key created! Copy it now — it won't be shown again.</p>
+        <div class="flex items-center gap-2">
+            <code id="new-key-value" class="bg-dark-900 text-gray-200 px-3 py-2 rounded text-sm flex-1 break-all"></code>
+            <button onclick="copyKey()" class="btn-primary px-3 py-2 rounded text-sm">Copy</button>
+        </div>
+    </div>
+</div>
+
+<!-- Usage examples -->
+<div class="card rounded-xl p-4 mb-6">
+    <h2 class="text-lg font-medium mb-3">Usage</h2>
+    <div class="space-y-3 text-sm">
+        <div>
+            <p class="text-gray-400 mb-1">Using <code class="text-cyan-400">X-API-Key</code> header:</p>
+            <code class="block bg-dark-700 text-gray-300 px-3 py-2 rounded">curl -H "X-API-Key: YOUR_KEY" {{ request.host_url }}api/stats</code>
+        </div>
+        <div>
+            <p class="text-gray-400 mb-1">Using <code class="text-cyan-400">Authorization: Bearer</code> header:</p>
+            <code class="block bg-dark-700 text-gray-300 px-3 py-2 rounded">curl -H "Authorization: Bearer YOUR_KEY" {{ request.host_url }}api/stats</code>
+        </div>
+    </div>
+</div>
+
+<!-- Existing keys -->
+<div class="card rounded-xl p-4">
+    <h2 class="text-lg font-medium mb-3">Your Keys</h2>
+    {% if keys %}
+    <div class="space-y-3">
+        {% for key in keys %}
+        <div class="flex items-center justify-between bg-dark-700 rounded-lg px-4 py-3">
+            <div>
+                <span class="font-medium">{{ key.name }}</span>
+                {% if not key.is_active %}
+                <span class="text-xs text-red-400 ml-2 bg-red-500/20 px-2 py-0.5 rounded">Revoked</span>
+                {% endif %}
+                <div class="text-xs text-gray-500 mt-1">
+                    Created {{ key.created_at.strftime('%Y-%m-%d') }}
+                    {% if key.last_used_at %}
+                    · Last used {{ key.last_used_at.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                    · Never used
+                    {% endif %}
+                </div>
+            </div>
+            {% if key.is_active %}
+            <button onclick="revokeKey({{ key.id }}, this)"
+                    class="btn-unsave px-3 py-1.5 rounded text-sm">
+                Revoke
+            </button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-500 text-sm">No API keys yet. Create one above to get started.</p>
+    {% endif %}
+</div>
+
+<script>
+function createKey() {
+    const nameInput = document.getElementById('key-name');
+    const name = nameInput.value.trim();
+    if (!name) {
+        alert('Please enter a name for the key');
+        return;
+    }
+
+    fetch('/api/keys', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name: name})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+            return;
+        }
+        document.getElementById('new-key-value').textContent = data.key;
+        document.getElementById('new-key-display').classList.remove('hidden');
+        nameInput.value = '';
+        // Reload page after a delay to show the new key in the list
+        setTimeout(() => location.reload(), 5000);
+    });
+}
+
+function copyKey() {
+    const keyText = document.getElementById('new-key-value').textContent;
+    navigator.clipboard.writeText(keyText).then(() => {
+        const btn = event.target;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+}
+
+function revokeKey(keyId, btn) {
+    if (!confirm('Revoke this API key? This cannot be undone.')) return;
+
+    fetch('/api/keys/' + keyId, {method: 'DELETE'})
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}
