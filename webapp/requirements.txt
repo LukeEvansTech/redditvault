@@ -1,5 +1,5 @@
 # Web framework
-flask==3.0.0
+flask==3.1.2
 gunicorn==22.0.0
 
 # Database
