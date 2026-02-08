@@ -19,7 +19,7 @@ class Config:
     REDDIT_CLIENT_SECRET = os.environ.get("REDDIT_CLIENT_SECRET")
     REDDIT_REDIRECT_URI = os.environ.get("REDDIT_REDIRECT_URI", "http://localhost:5000/auth/callback")
     REDDIT_USER_AGENT = os.environ.get("REDDIT_USER_AGENT", "RedditSavedViewer/1.0")
-    REDDIT_SCOPES = ["identity", "history", "read"]
+    REDDIT_SCOPES = ["identity", "history", "read", "save"]
 
     # Session
     PERMANENT_SESSION_LIFETIME = timedelta(days=30)
