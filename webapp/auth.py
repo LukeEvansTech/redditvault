@@ -135,9 +135,9 @@ def exchange_code_for_tokens(code: str) -> dict | None:
         if response.status_code == 200:
             return response.json()
 
-        current_app.logger.error(f"Token exchange failed: {response.status_code} {response.text}")
-    except requests.RequestException as e:
-        current_app.logger.error(f"Token exchange error: {e}")
+        current_app.logger.error("Token exchange failed: %d", response.status_code)
+    except requests.RequestException:
+        current_app.logger.error("Token exchange request failed")
 
     return None
 
@@ -159,9 +159,9 @@ def get_reddit_user_info(access_token: str) -> dict | None:
         if response.status_code == 200:
             return response.json()
 
-        current_app.logger.error(f"User info failed: {response.status_code} {response.text}")
-    except requests.RequestException as e:
-        current_app.logger.error(f"User info error: {e}")
+        current_app.logger.error("User info request failed: %d", response.status_code)
+    except requests.RequestException:
+        current_app.logger.error("User info request failed")
 
     return None
 
@@ -203,8 +203,8 @@ def refresh_access_token(user: User) -> bool:
             db.session.commit()
             return True
 
-        current_app.logger.error(f"Token refresh failed: {response.status_code} {response.text}")
-    except requests.RequestException as e:
-        current_app.logger.error(f"Token refresh error: {e}")
+        current_app.logger.error("Token refresh failed: %d", response.status_code)
+    except requests.RequestException:
+        current_app.logger.error("Token refresh request failed")
 
     return False

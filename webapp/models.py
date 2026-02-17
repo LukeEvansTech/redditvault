@@ -32,7 +32,7 @@ class User(db.Model, UserMixin):
         "SavedItem", backref="user", lazy="dynamic", cascade="all, delete-orphan"
     )
 
-    def is_token_expired(self):
+    def is_token_expired(self) -> bool:
         """Check if access token needs refresh."""
         if not self.token_expires_at:
             return True

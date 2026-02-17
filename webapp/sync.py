@@ -195,7 +195,7 @@ def sync_user_items(user_id: int, full_sync: bool = False) -> dict:
         return {"error": "User not found"}
 
     if user.sync_in_progress:
-        return {"status": "already_running"}
+        return {"error": "Sync already in progress"}
 
     user.sync_in_progress = True
     db.session.commit()

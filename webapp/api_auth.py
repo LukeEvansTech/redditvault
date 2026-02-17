@@ -12,7 +12,7 @@ from .extensions import db
 from .models import ApiKey, User
 
 
-def generate_api_key():
+def generate_api_key() -> tuple[str, str]:
     """Generate a new API key.
 
     Returns:
@@ -23,7 +23,7 @@ def generate_api_key():
     return raw_key, key_hash
 
 
-def verify_api_key(raw_key):
+def verify_api_key(raw_key: str) -> User | None:
     """Verify an API key and return the associated user.
 
     Returns:
