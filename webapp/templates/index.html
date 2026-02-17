@@ -1,44 +1,97 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="mb-8">
+<div class="mb-6">
     <h1 class="text-3xl font-bold mb-2 text-white">
         Your Saved Items
     </h1>
     <p class="text-gray-400">
-        {{ total }} items across {{ categories|length }} categories
-        <span class="mx-2 text-dark-600">|</span>
-        <span class="text-emerald-400">{{ total_reviewed }} reviewed</span>
+        {{ total }} item{{ 's' if total != 1 }}{% if current_subreddit %} in r/{{ current_subreddit }}{% endif %}
     </p>
+</div>
 
-    <div class="mt-4 bg-dark-700 rounded-full h-3 overflow-hidden">
-        {% set pct = (total_reviewed / total * 100) if total > 0 else 0 %}
-        <div class="progress-bar h-full rounded-full" style="width: {{ pct }}%"></div>
+<!-- Subreddit nav bar -->
+<div class="mb-6 overflow-x-auto pb-2">
+    <div class="flex gap-2 flex-nowrap">
+        <a href="/"
+           class="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors
+                  {% if not current_subreddit %}bg-cyan-600 text-white{% else %}bg-dark-700 text-gray-300 hover:bg-dark-600 border border-dark-600{% endif %}">
+            All
+        </a>
+        {% for sub in subreddits %}
+        <a href="/?subreddit={{ sub.name }}"
+           class="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors
+                  {% if current_subreddit == sub.name %}bg-cyan-600 text-white{% else %}bg-dark-700 text-gray-300 hover:bg-dark-600 border border-dark-600{% endif %}">
+            r/{{ sub.name }} <span class="text-xs opacity-70">({{ sub.count }})</span>
+        </a>
+        {% endfor %}
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for cat in categories %}
-    <a href="/category/{{ cat.name }}"
-       class="category-card block rounded-xl p-5 group">
-        <div class="flex justify-between items-start mb-3">
-            <h2 class="text-lg font-semibold text-gray-100 group-hover:text-cyan-400 transition-colors">
-                {{ cat.name }}
-            </h2>
-            <span class="text-sm text-gray-400 bg-dark-700 px-2 py-0.5 rounded-full">{{ cat.count }}</span>
-        </div>
-        <div class="flex items-center gap-3">
-            <div class="flex-1 bg-dark-700 rounded-full h-2 overflow-hidden">
-                {% set cat_pct = (cat.reviewed / cat.count * 100) if cat.count > 0 else 0 %}
-                <div class="progress-bar h-full rounded-full" style="width: {{ cat_pct }}%"></div>
+<!-- Items -->
+<div class="space-y-4">
+    {% for item in items %}
+    <div class="item-card rounded-xl p-4 {% if item.reviewed %}reviewed{% endif %}">
+        <div class="flex justify-between items-start gap-4">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs px-2.5 py-0.5 rounded-full font-medium {% if item.item_type == 'post' %}badge-post{% else %}badge-comment{% endif %}">
+                        {{ item.item_type }}
+                    </span>
+                    <a href="/?subreddit={{ item.subreddit }}" class="text-sm text-cyan-500 hover:text-cyan-400 transition-colors">r/{{ item.subreddit }}</a>
+                    <span class="text-xs text-gray-500">{{ item.created_utc.strftime('%Y-%m-%d') }}</span>
+                    <span class="text-xs text-gray-500">{{ item.score }} pts</span>
+                </div>
+
+                {% if item.item_type == 'post' %}
+                <a href="{{ item.permalink }}" target="_blank"
+                   class="text-lg font-medium hover:text-cyan-400 block truncate transition-colors">
+                    {{ item.title }}
+                </a>
+                {% if item.selftext %}
+                <p class="text-gray-400 text-sm mt-2 line-clamp-2">{{ item.selftext[:200] }}{% if item.selftext|length > 200 %}...{% endif %}</p>
+                {% elif not item.is_self %}
+                <p class="text-gray-500 text-sm mt-1 truncate flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    </svg>
+                    {{ item.url }}
+                </p>
+                {% endif %}
+                {% else %}
+                <a href="{{ item.permalink }}" target="_blank"
+                   class="text-lg font-medium hover:text-cyan-400 block truncate transition-colors">
+                    Comment on: {{ item.post_title }}
+                </a>
+                {% if item.body %}
+                <p class="text-gray-400 text-sm mt-2 line-clamp-2">{{ item.body[:200] }}{% if item.body|length > 200 %}...{% endif %}</p>
+                {% endif %}
+                {% endif %}
+
+                <p class="text-xs text-gray-500 mt-2">by u/{{ item.author }}</p>
             </div>
-            <span class="text-xs text-gray-400">{{ cat.reviewed }}/{{ cat.count }}</span>
+
+            <div class="flex flex-col gap-2">
+                <a href="{{ item.permalink }}" target="_blank"
+                   class="bg-dark-700 border border-dark-600 px-3 py-1.5 rounded text-sm text-center hover:border-cyan-600 transition-colors">
+                    Open
+                </a>
+                <button onclick="toggleReviewed('{{ item.reddit_id }}', this)"
+                        data-reviewed="{{ 'true' if item.reviewed else 'false' }}"
+                        class="btn-reviewed px-3 py-1.5 rounded text-sm {% if item.reviewed %}active{% endif %}">
+                    {% if item.reviewed %}Reviewed{% else %}Mark Reviewed{% endif %}
+                </button>
+                <button onclick="unsaveItem('{{ item.reddit_id }}', this)"
+                        class="btn-unsave px-3 py-1.5 rounded text-sm">
+                    Unsave
+                </button>
+            </div>
         </div>
-    </a>
+    </div>
     {% endfor %}
 </div>
 
-{% if not categories %}
+{% if not items %}
 <div class="text-center py-16">
     <div class="card inline-block rounded-2xl p-8">
         <div class="text-6xl mb-4">
@@ -54,5 +107,38 @@
         </button>
     </div>
 </div>
+{% endif %}
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<nav class="mt-8 flex justify-center">
+    <div class="flex items-center gap-2">
+        {% if pagination.has_prev %}
+        <a href="?page={{ pagination.prev_num }}{% if current_subreddit %}&subreddit={{ current_subreddit }}{% endif %}"
+           class="bg-dark-700 border border-dark-600 px-3 py-1.5 rounded text-sm hover:border-cyan-600 transition-colors">
+            &larr; Prev
+        </a>
+        {% endif %}
+
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                <a href="?page={{ page_num }}{% if current_subreddit %}&subreddit={{ current_subreddit }}{% endif %}"
+                   class="px-3 py-1.5 rounded text-sm transition-colors
+                          {% if page_num == pagination.page %}bg-cyan-600 text-white{% else %}bg-dark-700 border border-dark-600 hover:border-cyan-600{% endif %}">
+                    {{ page_num }}
+                </a>
+            {% else %}
+                <span class="text-gray-500 px-1">&hellip;</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <a href="?page={{ pagination.next_num }}{% if current_subreddit %}&subreddit={{ current_subreddit }}{% endif %}"
+           class="bg-dark-700 border border-dark-600 px-3 py-1.5 rounded text-sm hover:border-cyan-600 transition-colors">
+            Next &rarr;
+        </a>
+        {% endif %}
+    </div>
+</nav>
 {% endif %}
 {% endblock %}
