@@ -51,6 +51,8 @@ class RedditSyncService:
 
         if response.status_code == 401:
             raise RedditAPIError("Token expired")
+        elif response.status_code == 403:
+            raise RedditAPIError("Insufficient permissions. Please log out and log back in to re-authorize.")
         elif response.status_code == 429:
             time.sleep(60)
             return self._make_request(endpoint, params, method, data)
