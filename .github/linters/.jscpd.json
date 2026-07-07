@@ -8,6 +8,8 @@
     "**/.venv/**",
     "**/dist/**",
     "**/build/**",
-    "**/assets/scss/framework/**"
+    "**/assets/scss/framework/**",
+    "**/bulk_unsave*.py",
+    "bulk_unsave*.py"
   ]
 }
