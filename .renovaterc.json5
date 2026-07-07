@@ -1,0 +1,8 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["github>LukeEvansTech/renovate-config"],
+  schedule: ["before 6am on monday"],
+  pip_requirements: {
+    managerFilePatterns: ["/webapp/requirements.txt/"],
+  },
+}

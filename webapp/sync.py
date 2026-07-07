@@ -51,6 +51,8 @@ class RedditSyncService:
 
         if response.status_code == 401:
             raise RedditAPIError("Token expired")
+        elif response.status_code == 403:
+            raise RedditAPIError("Insufficient permissions. Please log out and log back in to re-authorize.")
         elif response.status_code == 429:
             time.sleep(60)
             return self._make_request(endpoint, params, method, data)
@@ -195,7 +197,7 @@ def sync_user_items(user_id: int, full_sync: bool = False) -> dict:
         return {"error": "User not found"}
 
     if user.sync_in_progress:
-        return {"status": "already_running"}
+        return {"error": "Sync already in progress"}
 
     user.sync_in_progress = True
     db.session.commit()

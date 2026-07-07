@@ -28,6 +28,7 @@ def get_op_field(item: str, field: str, vault: str = "Home Operations") -> str:
         capture_output=True,
         text=True,
         check=True,
+        timeout=30,
     )
     return result.stdout.strip()
 
@@ -39,6 +40,7 @@ def get_op_totp(item: str, vault: str) -> str:
         capture_output=True,
         text=True,
         check=True,
+        timeout=30,
     )
     return result.stdout.strip()
 

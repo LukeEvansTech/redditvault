@@ -3,38 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Reddit Saved Items{% endblock %}</title>
+    <title>{% block title %}RedditVault{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#0a0f1a',
+                            800: '#0f172a',
+                            700: '#1e293b',
+                            600: '#334155',
+                            500: '#475569',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="text-gray-100 min-h-screen">
-    <!-- Background orbs -->
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-
-    <nav class="glass-nav sticky top-0 z-50">
+<body class="bg-dark-900 text-gray-100 min-h-screen">
+    <nav class="bg-dark-800 border-b border-dark-600 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 py-3">
             <div class="flex items-center justify-between">
-                <a href="/" class="text-xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
-                    Reddit Saved
+                <a href="/" class="text-xl font-bold text-cyan-500">
+                    RedditVault
                 </a>
                 <div class="flex items-center gap-4">
                     {% if current_user.is_authenticated %}
                     <form action="/search" method="GET" class="flex">
                         <input type="text" name="q" placeholder="Search..."
-                               class="glass-input rounded-l px-3 py-1.5 text-sm w-48">
-                        <button type="submit" class="btn-gradient px-4 py-1.5 rounded-r text-sm font-medium">
+                               class="input-dark rounded-l px-3 py-1.5 text-sm w-48">
+                        <button type="submit" class="btn-primary px-4 py-1.5 rounded-r text-sm">
                             Search
                         </button>
                     </form>
-                    <div class="stats-glass text-sm">
+                    <div class="bg-dark-700 border border-dark-600 text-sm px-3 py-1 rounded-full">
                         <span id="stats" class="text-gray-300"></span>
                     </div>
                     <button id="sync-btn" onclick="triggerSync()"
-                            class="sync-btn glass-card px-3 py-1.5 rounded text-sm hover:border-orange-500/30">
+                            class="sync-btn bg-dark-700 border border-dark-600 px-3 py-1.5 rounded text-sm hover:border-cyan-600 transition-colors">
                         Sync
                     </button>
+                    <a href="/settings/api-keys" class="text-sm text-gray-400 hover:text-cyan-400 transition-colors">
+                        API Keys
+                    </a>
                     <span class="text-sm text-gray-400">u/{{ current_user.username }}</span>
                     <a href="{{ url_for('auth.logout') }}"
                        class="text-sm text-gray-400 hover:text-white transition-colors">
@@ -42,7 +58,7 @@
                     </a>
                     {% else %}
                     <a href="{{ url_for('auth.login') }}"
-                       class="btn-reddit px-4 py-2 rounded-lg text-sm font-medium text-white">
+                       class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">
                         Login with Reddit
                     </a>
                     {% endif %}
@@ -56,7 +72,7 @@
     {% if messages %}
     <div class="max-w-7xl mx-auto px-4 pt-4">
         {% for category, message in messages %}
-        <div class="flash-{{ category }} glass rounded-lg px-4 py-3 mb-2 text-sm">
+        <div class="flash-{{ category }} rounded-lg px-4 py-3 mb-2 text-sm">
             {{ message }}
         </div>
         {% endfor %}

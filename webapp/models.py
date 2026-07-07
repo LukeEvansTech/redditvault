@@ -32,13 +32,29 @@ class User(db.Model, UserMixin):
         "SavedItem", backref="user", lazy="dynamic", cascade="all, delete-orphan"
     )
 
-    def is_token_expired(self):
+    def is_token_expired(self) -> bool:
         """Check if access token needs refresh."""
         if not self.token_expires_at:
             return True
         # Refresh 5 minutes early to avoid edge cases
         from datetime import timedelta
         return datetime.utcnow() >= (self.token_expires_at - timedelta(minutes=5))
+
+
+class ApiKey(db.Model):
+    """API key for programmatic access."""
+
+    __tablename__ = "api_keys"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    key_hash = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_used_at = db.Column(db.DateTime, nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+
+    user = db.relationship("User", backref=db.backref("api_keys", lazy="dynamic"))
 
 
 class SavedItem(db.Model):
