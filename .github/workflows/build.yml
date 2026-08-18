@@ -15,7 +15,57 @@ permissions:
   contents: read
 
 jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The Dockerfile FROM is this repo's only declaration of the interpreter,
+      # so reading it here keeps CI and the shipped image on one version. A
+      # hardcoded copy would silently desync the next time Renovate bumps the
+      # base image.
+      - name: Resolve Python version from the Dockerfile
+        id: python
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^FROM python:\([0-9]\{1,\}\.[0-9]\{1,\}\).*/\1/p' Dockerfile | head -1)
+          if [ -z "$version" ]; then
+            echo "::error::could not read a Python version from the Dockerfile FROM line"
+            exit 1
+          fi
+          echo "Dockerfile builds on Python ${version}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ steps.python.outputs.version }}
+          # Deliberately no `cache: pip`, unlike the sibling repos. This
+          # workflow both runs on pull_request and publishes to ghcr on
+          # main/tags, so a restored pip cache is a supply-chain path from a
+          # PR run into a published image (zizmor cache-poisoning, high). The
+          # dependency set is five packages; the cache saves seconds and is
+          # not worth that.
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -r webapp/requirements.txt -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest -q
+
   build:
+    # Gated on the tests rather than run alongside them: this job publishes
+    # `latest` to ghcr on every push to main, and an image whose auth and sync
+    # tests fail should never reach the registry. On a pull request it only
+    # builds, so the gate costs nothing there.
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
