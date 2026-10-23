@@ -1,6 +1,7 @@
 # RedditVault (redditsaveditems)
 
-A Flask webapp plus a set of standalone scripts for exporting, categorizing, and bulk-unsaving Reddit "saved" posts/comments. The webapp (`webapp/`) does OAuth login, syncs saved items into SQLite, and serves a glassmorphism UI for browsing/searching/marking items reviewed. Alongside it are one-off CLI scripts for exporting saved items to JSON/Markdown, auto-categorizing them, and bulk-unsaving via OAuth, 1Password-stored credentials, or a standalone script.
+A Flask webapp plus a set of standalone scripts for exporting, categorizing, and bulk-unsaving Reddit "saved" posts/comments.
+The webapp (`webapp/`) does OAuth login, syncs saved items into SQLite, and serves a glassmorphism UI for browsing/searching/marking items reviewed. Alongside it are one-off CLI scripts for exporting saved items to JSON/Markdown, auto-categorizing them, and bulk-unsaving via OAuth, 1Password-stored credentials, or a standalone script.
 
 Status: active, last commit 2026-01-15 (feat: add unsave functionality).
 
