@@ -15,6 +15,6 @@ jobs:
       contents: read
       statuses: write
       pull-requests: write
-    uses: LukeEvansTech/shared-workflows/.github/workflows/super-linter.yml@4f77b1856421438fefe16f69ed4dd682a445f7b1 # v1
+    uses: LukeEvansTech/shared-workflows/.github/workflows/super-linter.yml@88e2614117b0d11fd7f2e0bd81de3975eff17394 # v1
     with:
       soft-launch: false
